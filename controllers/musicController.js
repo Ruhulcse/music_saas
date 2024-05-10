@@ -1,41 +1,72 @@
-const asyncHandler = require("express-async-handler");
 const axios = require("axios");
-const Replicate = require("replicate");
+const asyncHandler = require("express-async-handler"); // Assuming you are using express-async-handler for error handling
 
 module.exports.musicList = asyncHandler(async (req, res) => {
   try {
     const { prompt } = req.body;
-    const replicate = new Replicate({
-      auth: process.env.REPLICATE_API_TOKEN,
-    });
+    const API_KEY = process.env.APIKEY; // Ensure your API key is stored in environment variables
 
-    const output = await replicate.run(
-      "meta/musicgen:671ac645ce5e552cc63a54a2bbff63fcf798043055d2dac5fc9e36a837eedcfb",
-      {
-        input: {
-          top_k: 250,
-          top_p: 0,
-          prompt: prompt,
-          duration: 33,
-          temperature: 1,
-          continuation: false,
-          model_version: "stereo-large",
-          output_format: "mp3",
-          continuation_start: 0,
-          multi_band_diffusion: false,
-          normalization_strategy: "peak",
-          classifier_free_guidance: 3,
-        },
-      }
+    // Set up the request body and headers
+    const body = {
+      gpt_description_prompt: prompt,
+      make_instrumental: true,
+      prompt,
+    };
+    const headers = {
+      "Content-Type": "application/json",
+      "api-key": API_KEY, // Adjusted to match the correct header parameter name
+    };
+
+    // Make the API call
+    const songResponse = await axios.post(
+      "https://api.sunoaiapi.com/api/v1/gateway/generate/chatgpt",
+      body,
+      { headers }
     );
-    console.log(output);
+    const songList = songResponse.data.data;
     res.json({
       error: false,
       message: "Successfully retrieved music",
-      data: output,
+      data: songList,
     });
   } catch (error) {
-    console.log(error);
+    console.error("API call failed:", error.message);
+    res.status(500).json({
+      error: true,
+      message: "Something went wrong!!",
+      data: null,
+    });
+  }
+});
+
+module.exports.generateMusic = asyncHandler(async (req, res) => {
+  console.log("api called ");
+  try {
+    const { songId } = req.body;
+    const API_KEY = process.env.APIKEY; // Ensure your API key is stored in environment variables
+
+    const headers = {
+      "Content-Type": "application/json",
+      "api-key": API_KEY, // Adjusted to match the correct header parameter name
+    };
+
+    const response = await axios.get(
+      `https://api.sunoaiapi.com/api/v1/gateway/feed/${songId}`,
+      { headers }
+    );
+    console.log("response data ", response.data);
+    // Process the API response
+    if (response.data && response.data.code === 0) {
+      res.json({
+        error: false,
+        message: "Successfully retrieved music",
+        data: response.data.data,
+      });
+    } else {
+      throw new Error("Failed to generate music");
+    }
+  } catch (error) {
+    console.error("API call failed:", error.message);
     res.status(500).json({
       error: true,
       message: "Something went wrong!!",
