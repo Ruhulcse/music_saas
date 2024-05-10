@@ -4,7 +4,7 @@ const Replicate = require("replicate");
 
 module.exports.musicList = asyncHandler(async (req, res) => {
   try {
-    const {prompt} = req.body;
+    const { prompt } = req.body;
     const replicate = new Replicate({
       auth: process.env.REPLICATE_API_TOKEN,
     });
@@ -15,7 +15,7 @@ module.exports.musicList = asyncHandler(async (req, res) => {
         input: {
           top_k: 250,
           top_p: 0,
-          prompt: prompt
+          prompt: prompt,
           duration: 33,
           temperature: 1,
           continuation: false,
