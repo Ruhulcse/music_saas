@@ -1,13 +1,17 @@
 const asyncHandler = require("express-async-handler");
 const Stripe = require("stripe");
 
-const stripe = new Stripe(process.env.STRIPE);
+const stripe = new Stripe(
+  "sk_test_51MhzlcJggWefJ04ANPv4Gf4MCvQCWWyjeeAWByiT8ncL3FgYbMfQ0HZYoihqDYXIqltVKsBwUFkhaMwyhxbaTeTk002Z92cnlV"
+);
 const createSubscription = asyncHandler(async (req, res) => {
   try {
+    console.log("env is ", process.env);
     const { name, email, paymentMethod, priceId } = req.body;
+    console.log("stripe is ", stripe);
     // create a new customer for subscription
     const customer = await stripe.customers.create({
-      name: name,
+      name: "AZAD",
       email: email,
       payment_method: paymentMethod,
       invoice_settings: {
@@ -38,6 +42,7 @@ const createSubscription = asyncHandler(async (req, res) => {
       },
     });
   } catch (error) {
+    console.log("error is ", error.message);
     res.status(500).json({
       error: true,
       message: `${error.message}`,
